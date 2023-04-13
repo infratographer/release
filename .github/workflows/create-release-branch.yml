@@ -21,7 +21,7 @@ jobs:
         with:
           github-token: ${{ secrets.RELEASEBOT_PAT }}
           script: |
-            let githubOrg = 'nicolerenee'
+            let githubOrg = 'infratographer'
             let sourceBranch = 'heads/main'
             let releaseBranch = 'heads/release-${{ inputs.release-version }}'
 
