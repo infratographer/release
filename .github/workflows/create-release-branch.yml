@@ -1,0 +1,58 @@
+on:
+  workflow_dispatch:
+    inputs:
+      release-version:
+        description: 'Release Name (ex: "2023.04")'
+        required: true
+
+jobs:
+  create-release-branch:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        repo:
+          - identity-api
+          - permissions-api
+
+    steps:
+      - name: Create release branch for ${{ matrix.repo }}
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.RELEASEBOT_PAT }}
+          script: |
+            let githubOrg = 'nicolerenee'
+            let sourceBranch = 'heads/main'
+            let releaseBranch = 'heads/release-${{ inputs.release-version }}'
+
+            async function getBranchSHA(branch) {
+              try {
+                const resp = await github.rest.git.getRef({
+                  owner: githubOrg,
+                  repo: '${{ matrix.repo }}',
+                  ref: branch,
+                })
+
+                return resp.data.object.sha
+              } catch (error) {
+                return ''
+              }
+            }
+
+            if (await getBranchSHA(releaseBranch) != '') {
+              console.log("Release branch already exists, skipping creation")
+              return
+            }
+
+            const sourceSHA = await getBranchSHA(sourceBranch)
+            if (sourceSHA == '') {
+              throw new Error('Failed to find SHA for source branch')
+              return
+            }
+
+            github.rest.git.createRef({
+              owner: githubOrg,
+              repo: '${{ matrix.repo }}',
+              ref: `refs/${ releaseBranch }`,
+              sha: sourceSHA,
+            })
