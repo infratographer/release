@@ -1,0 +1,40 @@
+name: Parse Release YAML
+run-name: Parse Release YAML for ${{ inputs.release_file }}
+
+on:
+  workflow_call:
+    inputs:
+      release_file:
+        required: true
+        type: string
+    outputs:
+      release_file:
+        description: "Release YAML File"
+        value: ${{ inputs.releaseFile }}
+      release_version:
+        description: "Version on the release"
+        value: ${{ jobs.parse_release_yaml.outputs.release_version }}
+      release_repos:
+        description: "Repositories included in the release"
+        value: ${{ jobs.parse_release_yaml.outputs.release_repos }}
+
+jobs:
+  parse_release_yaml:
+    name: Parse ${{ inputs.release_file }}
+    runs-on: ubuntu-latest
+    # Map the job outputs to step outputs
+    outputs:
+      release_version: ${{ steps.get-release-version.outputs.result }}
+      release_repos: ${{ steps.get-repos.outputs.result }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get release version
+        id: get-release-version
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.version' ${{ inputs.release_file }}
+      - name: Get release repos
+        id: get-repos
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.repos' ${{ inputs.release_file }} --output-format json
