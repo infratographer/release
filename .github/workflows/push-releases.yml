@@ -5,36 +5,60 @@ on:
     branches:
       - 'main'
     paths:
-      - 'releases/release-*.yml'
+      - 'releases/release-*/release.yml'
+      - 'releases/release-*/tag-*.yml'
 
 jobs:
-  gather-release-files:
+  gather_files:
     runs-on: ubuntu-latest
     outputs:
-      release-files: ${{ steps.set-files.outputs.files }}
+      release_files: ${{ steps.set_release_files.outputs.files }}
+      tag_files: ${{ steps.set_tag_files.outputs.files }}
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Get changed files in the docs folder
-        id: changed-release-files
+      - name: Get changed release definitions
+        id: changed_release_files
         uses: tj-actions/changed-files@v35
         with:
-          files: releases/release-*.yml
-      - name: Gather release versions
-        id: set-files
+          files: releases/release-*/release.yml
+      - name: Gather release files as json list
+        id: set_release_files
         run: |
-          echo "files=$(echo -n ${{ steps.changed-release-files.outputs.all_changed_files }} | jq -R -s -c 'split(" ")')"  >> $GITHUB_OUTPUT
-      - name: Reuse a variable obtained in another step
-        run: echo ${{ steps.set-matrix.outputs.files }}
+          echo "files=$(echo -n ${{ steps.changed_release_files.outputs.all_changed_files }} | jq -R -s -c 'split(" ")')"  >> $GITHUB_OUTPUT
+      - name: Get changed tag definitions
+        id: changed_tag_files
+        uses: tj-actions/changed-files@v35
+        with:
+          files: releases/release-*/tag-*.yml
+      - name: Gather tag files as json list
+        id: set_tag_files
+        run: |
+          echo "files=$(echo -n ${{ steps.changed_tag_files.outputs.all_changed_files }} | jq -R -s -c 'split(" ")')"  >> $GITHUB_OUTPUT
 
-  create_release_branches:
-    needs: gather-release-files
+  create_branches:
+    name: Create Release Branches for ${{ matrix.release_file }}
+    needs: gather_files
+    if: ${{ needs.gather_files.outputs.release_files != '[]' }}
     strategy:
       matrix:
-        release_file: ${{ fromJson(needs.gather-release-files.outputs.release-files) }}
+        release_file: ${{ fromJson(needs.gather_files.outputs.release_files) }}
     uses: ./.github/workflows/create-release-branches-for-release.yml
     with:
       release_file: ${{ matrix.release_file }}
     secrets:
-      releasebot_token: ${{ secrets.RELEASEBOT_PAT }}
+      release_bot_token: ${{ secrets.RELEASE_BOT_TOKEN }}
+
+  create_tags:
+    name: Create Release Tags for ${{ matrix.tag_file }}
+    needs: gather_files
+    if: ${{ needs.gather_files.outputs.tag_files != '[]' }}
+    strategy:
+      matrix:
+        tag_file: ${{ fromJson(needs.gather_files.outputs.tag_files) }}
+    uses: ./.github/workflows/create-tags-for-release.yml
+    with:
+      tag_file: ${{ matrix.tag_file }}
+    secrets:
+      release_bot_token: ${{ secrets.RELEASE_BOT_TOKEN }}

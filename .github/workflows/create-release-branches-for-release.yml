@@ -1,4 +1,4 @@
-name: Create Release Branches for Release
+name: Create Release Branches
 run-name: Create Release Branches for ${{ inputs.release_file }}
 
 on:
@@ -8,23 +8,25 @@ on:
         required: true
         type: string
     secrets:
-      releasebot_token:
+      release_bot_token:
         required: true
 
 jobs:
-  parse-release:
+  parse:
+    name: Parse ${{ inputs.release_file }}
     uses: ./.github/workflows/parse-release.yml
     with:
       release_file: ${{ inputs.release_file }}
 
-  create_release_branches:
-    needs: parse-release
+  create:
+    name: Create Branch - ${{ matrix.release_repo }}
+    needs: parse
     strategy:
       matrix:
-        release_repo: ${{ fromJson(needs.parse-release.outputs.release_repos) }}
+        release_repo: ${{ fromJson(needs.parse.outputs.release_repos) }}
     uses: ./.github/workflows/create-release-branch-for-repo.yml
     with:
       repo: ${{ matrix.release_repo }}
-      version: ${{ needs.parse-release.outputs.release_version }}
+      version: ${{ needs.parse.outputs.release_version }}
     secrets:
-      releasebot_token: ${{ secrets.releasebot_token }}
+      release_bot_token: ${{ secrets.release_bot_token }}

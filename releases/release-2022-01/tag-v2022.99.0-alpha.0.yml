@@ -1,0 +1,8 @@
+---
+version: v2022.01.0-alpha.0
+title: v2022.01.0 - Test Release 0
+announcement: |
+  This is a release announcement, it uses markdown
+
+  ***Breaking changes***
+  - none, this is brand new :)

@@ -10,7 +10,7 @@ on:
     outputs:
       release_file:
         description: "Release YAML File"
-        value: ${{ inputs.releaseFile }}
+        value: ${{ inputs.release_file }}
       release_version:
         description: "Version on the release"
         value: ${{ jobs.parse_release_yaml.outputs.release_version }}

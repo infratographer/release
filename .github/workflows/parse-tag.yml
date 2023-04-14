@@ -1,0 +1,75 @@
+name: Parse Tag YAML
+run-name: Parse Tag YAML for ${{ inputs.tag_file }}
+
+on:
+  workflow_call:
+    inputs:
+      tag_file:
+        required: true
+        type: string
+    outputs:
+      tag_file:
+        description: "Tag YAML File"
+        value: ${{ inputs.tag_file }}
+      tag_version:
+        description: "Version of the tag"
+        value: ${{ jobs.parse_tag_yaml.outputs.tag_version }}
+      tag_title:
+        description: "Title to use for the release"
+        value: ${{ jobs.parse_tag_yaml.outputs.tag_title }}
+      tag_announcement:
+        description: "Announcement to include in release notes"
+        value: ${{ jobs.parse_tag_yaml.outputs.tag_announcement }}
+      release_file:
+        description: "Release YAML File"
+        value: ${{ jobs.parse_tag_yaml.outputs.release_file }}
+      release_version:
+        description: "Version on the release"
+        value: ${{ jobs.parse_release_yaml.outputs.release_version }}
+      release_repos:
+        description: "Repositories included in the release"
+        value: ${{ jobs.parse_release_yaml.outputs.release_repos }}
+
+jobs:
+  parse_tag_yaml:
+    name: Parse ${{ inputs.tag_file }}
+    runs-on: ubuntu-latest
+    outputs:
+      release_file: ${{ steps.get_release_file.outputs.file }}
+      tag_version: ${{ steps.get_tag_version.outputs.result }}
+      tag_title: ${{ steps.get_tag_title.outputs.result }}
+      tag_announcement: ${{ steps.get_tag_announcement.outputs.result }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get tag version
+        id: get_tag_version
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.version' ${{ inputs.tag_file }}
+      - name: Get Release file
+        id: get_release_file
+        run: |
+          echo -n "file=$(dirname ${{ inputs.tag_file }})/release.yml" >> $GITHUB_OUTPUT
+      - name: Get tag title
+        id: get_tag_title
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.title' ${{ inputs.tag_file }}
+      - name: Get Announcement
+        id: get_tag_announcement
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.announcement' ${{ inputs.tag_file }}
+  parse_release_yaml:
+    needs: parse_tag_yaml
+    uses: ./.github/workflows/parse-release.yml
+    with:
+      release_file: ${{ needs.parse_tag_yaml.outputs.release_file }}
+  # Without this, at least in `act` locally, the results from parse_release_yaml aren't added to
+  # the jobs context
+  ihateeverything:
+    needs: parse_release_yaml
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "done"
