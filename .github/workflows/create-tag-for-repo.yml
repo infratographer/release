@@ -1,5 +1,5 @@
-name: Create Release Branch
-run-name: Create release ${{ inputs.version }} branch for ${{ inputs.org }}/${{ inputs.repo }}
+name: Create Release Tag
+run-name: Create tag ${{ inputs.version }} for ${{ inputs.org }}/${{ inputs.repo }}
 
 on:
   workflow_call:
@@ -10,10 +10,10 @@ on:
       repo:
         required: true
         type: string
-      source_branch:
-        default: main
+      release_branch:
+        required: true
         type: string
-      version:
+      tag_version:
         required: true
         type: string
     secrets:
@@ -21,20 +21,20 @@ on:
         required: true
 
 jobs:
-  create:
-    name: Create ${{inputs.repo}} release ${{ inputs.version }} branch
+  create_tag:
+    name: Create tag ${{ inputs.version }} for ${{ inputs.org }}/${{ inputs.repo }}
     runs-on: ubuntu-latest
 
     steps:
-      - name: Create release branch for ${{ inputs.repo }}
+      - name: Create release tag for ${{ inputs.repo }}
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.release_bot_token }}
           script: |
-            let sourceBranch = 'heads/${{ inputs.source_branch }}'
-            let releaseBranch = 'heads/releases/${{ inputs.version }}'
+            let tagRef = 'tags/${{ inputs.tag_version }}'
+            let releaseBranch = 'heads/releases/${{ inputs.release_branch }}'
 
-            async function getBranchSHA(branch) {
+            async function getRefSHA(branch) {
               try {
                 const resp = await github.rest.git.getRef({
                   owner: '${{ inputs.org }}',
@@ -46,18 +46,18 @@ jobs:
                 return ''
               }
             }
-            if (await getBranchSHA(releaseBranch) != '') {
-              console.log("Release branch already exists, skipping creation")
+            if (await getRefSHA(tagRef) != '') {
+              console.log("Release tag already exists, skipping creation")
               return
             }
-            const sourceSHA = await getBranchSHA(sourceBranch)
+            const sourceSHA = await getRefSHA(releaseBranch)
             if (sourceSHA == '') {
-              throw new Error('Failed to find SHA for source branch')
+              throw new Error('Failed to find SHA for release branch')
               return
             }
             github.rest.git.createRef({
               owner: '${{ inputs.org }}',
               repo: '${{ inputs.repo }}',
-              ref: `refs/${ releaseBranch }`,
+              ref: `refs/${ tagRef }`,
               sha: sourceSHA,
             })
