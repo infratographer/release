@@ -1,0 +1,30 @@
+name: Create Release Branches for Release
+run-name: Create Release Branches for ${{ inputs.release_file }}
+
+on:
+  workflow_call:
+    inputs:
+      release_file:
+        required: true
+        type: string
+    secrets:
+      releasebot_token:
+        required: true
+
+jobs:
+  parse-release:
+    uses: ./.github/workflows/parse-release.yml
+    with:
+      release_file: ${{ inputs.release_file }}
+
+  create_release_branches:
+    needs: parse-release
+    strategy:
+      matrix:
+        release_repo: ${{ fromJson(needs.parse-release.outputs.release_repos) }}
+    uses: ./.github/workflows/create-release-branch-for-repo.yml
+    with:
+      repo: ${{ matrix.release_repo }}
+      version: ${{ needs.parse-release.outputs.release_version }}
+    secrets:
+      releasebot_token: ${{ secrets.releasebot_token }}

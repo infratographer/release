@@ -1,0 +1,40 @@
+name: Release Files Changed
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'releases/release-*.yml'
+
+jobs:
+  gather-release-files:
+    runs-on: ubuntu-latest
+    outputs:
+      release-files: ${{ steps.set-files.outputs.files }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Get changed files in the docs folder
+        id: changed-release-files
+        uses: tj-actions/changed-files@v35
+        with:
+          files: releases/release-*.yml
+      - name: Gather release versions
+        id: set-files
+        run: |
+          echo "files=$(echo -n ${{ steps.changed-release-files.outputs.all_changed_files }} | jq -R -s -c 'split(" ")')"  >> $GITHUB_OUTPUT
+      - name: Reuse a variable obtained in another step
+        run: echo ${{ steps.set-matrix.outputs.files }}
+
+  create_release_branches:
+    needs: gather-release-files
+    strategy:
+      matrix:
+        release_file: ${{ fromJson(needs.gather-release-files.outputs.release-files) }}
+    uses: ./.github/workflows/create-release-branches-for-release.yml
+    with:
+      release_file: ${{ matrix.release_file }}
+    secrets:
+      releasebot_token: ${{ secrets.RELEASEBOT_PAT }}
