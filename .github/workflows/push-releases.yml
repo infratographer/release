@@ -37,4 +37,4 @@ jobs:
     with:
       release_file: ${{ matrix.release_file }}
     secrets:
-      github_token: ${{ secrets.RELEASEBOT_PAT }}
+      releasebot_token: ${{ secrets.RELEASEBOT_PAT }}

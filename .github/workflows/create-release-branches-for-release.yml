@@ -8,7 +8,7 @@ on:
         required: true
         type: string
     secrets:
-      github_token:
+      releasebot_token:
         required: true
 
 jobs:
@@ -27,4 +27,4 @@ jobs:
       repo: ${{ matrix.release_repo }}
       version: ${{ needs.parse-release.outputs.release_version }}
     secrets:
-      github_token: ${{ secrets.github_token }}
+      releasebot_token: ${{ secrets.releasebot_token }}

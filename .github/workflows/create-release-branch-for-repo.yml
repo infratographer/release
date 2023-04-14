@@ -19,7 +19,7 @@ on:
         required: true
         type: string
     secrets:
-      github_token:
+      releasebot_token:
         required: true
 
 jobs:
@@ -30,7 +30,7 @@ jobs:
       - name: Create release branch for ${{ inputs.repo }}
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.github_token }}
+          github-token: ${{ secrets.releasebot_token }}
           script: |
             let sourceBranch = 'heads/${{ inputs.source_branch }}'
             let releaseBranch = 'heads/releases/${{ inputs.version }}'
