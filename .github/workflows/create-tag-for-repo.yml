@@ -52,8 +52,10 @@ jobs:
               repo: '${{ inputs.repo }}',
               tree: releaseBranch,
               message: 'Release ${{inputs.tag_version}} Commit',
-              author.name: 'Infratographer Release Robot',
-              author.email: 'github-robot@infratographer.com',
+              author: {
+                name: 'Infratographer Release Robot',
+                email: 'github-robot@infratographer.com',
+              }
             })
 
             if (await getRefSHA(tagRef) != '') {
