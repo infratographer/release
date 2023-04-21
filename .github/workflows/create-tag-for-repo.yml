@@ -46,6 +46,16 @@ jobs:
                 return ''
               }
             }
+
+            github.rest.git.createCommit({
+              owner: '${{ inputs.org }}',
+              repo: '${{ inputs.repo }}',
+              tree: releaseBranch,
+              message: 'Release ${{inputs.tag_version}} Commit',
+              author.name: 'Infratographer Release Robot',
+              author.email: 'github-robot@infratographer.com',
+            })
+
             if (await getRefSHA(tagRef) != '') {
               console.log("Release tag already exists, skipping creation")
               return
@@ -55,6 +65,7 @@ jobs:
               throw new Error('Failed to find SHA for release branch')
               return
             }
+
             github.rest.git.createRef({
               owner: '${{ inputs.org }}',
               repo: '${{ inputs.repo }}',
