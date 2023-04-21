@@ -32,6 +32,7 @@ jobs:
           github-token: ${{ secrets.release_bot_token }}
           script: |
             let tagRef = 'tags/${{ inputs.tag_version }}'
+            let releaseBranchName = 'releases/${{ inputs.release_branch }}'
             let releaseBranch = 'heads/releases/${{ inputs.release_branch }}'
 
             async function getRefSHA(branch) {
@@ -51,25 +52,36 @@ jobs:
               console.log("Release tag already exists, skipping creation")
               return
             }
+
             const sourceSHA = await getRefSHA(releaseBranch)
             if (sourceSHA == '') {
               throw new Error('Failed to find SHA for release branch')
               return
             }
 
-            github.rest.git.createCommit({
-              owner: '${{ inputs.org }}',
-              repo: '${{ inputs.repo }}',
-              tree: sourceSHA,
-              message: 'Release ${{inputs.tag_version}} Commit',
-              author: {
-                name: 'Infratographer Release Robot',
-                email: 'github-robot@infratographer.com',
+            const query = `mutation ($input: CreateCommitOnBranchInput!) {
+              createCommitOnBranch(input: $input) {
+                commit {
+                  oid
+                }
               }
-            })
+            }`;
+            const variables = {
+              input: {
+                branch: {
+                  repositoryNameWithOwner: '${{ inputs.org }}/${{ inputs.repo }}',
+                  branchName: $releaseBranchName,
+                },
+                message: {
+                  'headline': 'Release ${{inputs.tag_version}} Commit',
+                },
+                fileChanges: {},
+                expectedHeadOid: sourceSHA
+              }
+            }
+            const releaseCommit = await github.graphql(query, variables)
 
-            const releaseCommitSHA = await getRefSHA(releaseBranch)
-            if (releaseCommitSHA == '') {
+            if (releaseCommit.data.createCommitOnBranch.commit.oid == '') {
               throw new Error('Failed to find SHA for release commit')
               return
             }
@@ -78,5 +90,5 @@ jobs:
               owner: '${{ inputs.org }}',
               repo: '${{ inputs.repo }}',
               ref: `refs/${ tagRef }`,
-              sha: releaseCommitSHA,
+              sha: releaseCommit.data.createCommitOnBranch.commit.oid,
             })
