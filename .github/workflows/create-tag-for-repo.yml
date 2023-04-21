@@ -65,23 +65,25 @@ jobs:
                   oid
                 }
               }
-            }`;
+            }`
+
             const variables = {
               input: {
                 branch: {
                   repositoryNameWithOwner: '${{ inputs.org }}/${{ inputs.repo }}',
-                  branchName: releaseBranchName,
+                  branchName: 'releases/${{ inputs.release_branch }}',
                 },
                 message: {
                   'headline': 'Release ${{inputs.tag_version}} Commit',
                 },
                 fileChanges: {},
-                expectedHeadOid: sourceSHA
+                expectedHeadOid: `${ sourceSHA }`
               }
             }
+
             const releaseCommit = await github.graphql(query, variables)
 
-            if (releaseCommit.data.createCommitOnBranch.commit.oid == '') {
+            if (releaseCommit.createCommitOnBranch.commit.oid == '') {
               throw new Error('Failed to find SHA for release commit')
               return
             }
@@ -90,5 +92,5 @@ jobs:
               owner: '${{ inputs.org }}',
               repo: '${{ inputs.repo }}',
               ref: `refs/${ tagRef }`,
-              sha: releaseCommit.data.createCommitOnBranch.commit.oid,
+              sha: releaseCommit.createCommitOnBranch.commit.oid,
             })

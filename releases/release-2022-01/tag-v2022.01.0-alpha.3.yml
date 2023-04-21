@@ -2,4 +2,4 @@
 version: v2022.01.0-alpha.3
 title: v2022.01.0 - Test Release 3
 announcement: |
-  This is a release for github actions to run to test the commit message
+  This is a release for github actions to run to test the commit message.
