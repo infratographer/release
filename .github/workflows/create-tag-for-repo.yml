@@ -47,17 +47,6 @@ jobs:
               }
             }
 
-            github.rest.git.createCommit({
-              owner: '${{ inputs.org }}',
-              repo: '${{ inputs.repo }}',
-              tree: releaseBranch,
-              message: 'Release ${{inputs.tag_version}} Commit',
-              author: {
-                name: 'Infratographer Release Robot',
-                email: 'github-robot@infratographer.com',
-              }
-            })
-
             if (await getRefSHA(tagRef) != '') {
               console.log("Release tag already exists, skipping creation")
               return
@@ -68,9 +57,26 @@ jobs:
               return
             }
 
+            github.rest.git.createCommit({
+              owner: '${{ inputs.org }}',
+              repo: '${{ inputs.repo }}',
+              tree: sourceSHA,
+              message: 'Release ${{inputs.tag_version}} Commit',
+              author: {
+                name: 'Infratographer Release Robot',
+                email: 'github-robot@infratographer.com',
+              }
+            })
+
+            const releaseCommitSHA = await getRefSHA(releaseBranch)
+            if (releaseCommitSHA == '') {
+              throw new Error('Failed to find SHA for release commit')
+              return
+            }
+
             github.rest.git.createRef({
               owner: '${{ inputs.org }}',
               repo: '${{ inputs.repo }}',
               ref: `refs/${ tagRef }`,
-              sha: sourceSHA,
+              sha: releaseCommitSHA,
             })
