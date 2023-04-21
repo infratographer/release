@@ -70,7 +70,7 @@ jobs:
               input: {
                 branch: {
                   repositoryNameWithOwner: '${{ inputs.org }}/${{ inputs.repo }}',
-                  branchName: $releaseBranchName,
+                  branchName: releaseBranchName,
                 },
                 message: {
                   'headline': 'Release ${{inputs.tag_version}} Commit',
