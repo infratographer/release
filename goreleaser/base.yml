@@ -1,5 +1,6 @@
 # yaml-language-server: $schema=https://goreleaser.com/static/schema-pro.json
 
+
 before:
   hooks:
     - go mod download
@@ -49,8 +50,8 @@ changelog:
 dockers:
   -
     image_templates:
-      - ghcr.io/infratographer/{{.ProjectName}}:{{ .Tag }}
-    dockerfile: Dockerfile.release
+      - ghcr.io/infratographer/{{.ProjectName}}:{{ .Version }}
+    dockerfile: Dockerfile
     build_flag_templates:
       - --label=org.opencontainers.image.title={{ .ProjectName }}
       - --label=org.opencontainers.image.description={{ .ProjectName }}
@@ -65,6 +66,12 @@ release:
   mode: prepend
   prerelease: auto
   draft: false
-  name_template: "Release {{.Tag}}"
+  name_template: "Release {{.Version}}"
   header: |
     # What's Changed
+
+nightly:
+  name_template: main-latest
+  tag_name: main-latest
+  publish_release: false
+  keep_single_release: true
