@@ -50,7 +50,7 @@ changelog:
 dockers:
   -
     image_templates:
-      - ghcr.io/infratographer/{{.ProjectName}}:{{ .Version }}-amd64
+      - ghcr.io/infratographer/{{.ProjectName}}:{{ or (and (or .IsNightly .IsSnapshot) .Version) (printf "v%s" .Version) }}-amd64
     dockerfile: Dockerfile
     use: buildx
     build_flag_templates:
@@ -66,7 +66,7 @@ dockers:
       - --label=org.opencontainers.image.licenses=Apache-2.0
   -
     image_templates:
-      - ghcr.io/infratographer/{{.ProjectName}}:{{ .Version }}-arm64
+      - ghcr.io/infratographer/{{.ProjectName}}:{{ or (and (or .IsNightly .IsSnapshot) .Version) (printf "v%s" .Version) }}-arm64
     dockerfile: Dockerfile
     use: buildx
     goarch: arm64
@@ -83,16 +83,16 @@ dockers:
       - --label=org.opencontainers.image.licenses=Apache-2.0
 
 docker_manifests:
-- name_template: ghcr.io/infratographer/{{.ProjectName}}:{{ .Version }}
+- name_template: ghcr.io/infratographer/{{.ProjectName}}:{{ or (and (or .IsNightly .IsSnapshot) .Version) (printf "v%s" .Version) }}
   image_templates:
-  - ghcr.io/infratographer/{{.ProjectName}}:{{ .Version }}-amd64
-  - ghcr.io/infratographer/{{.ProjectName}}:{{ .Version }}-arm64
+  - ghcr.io/infratographer/{{.ProjectName}}:{{ or (and (or .IsNightly .IsSnapshot) .Version) (printf "v%s" .Version) }}-amd64
+  - ghcr.io/infratographer/{{.ProjectName}}:{{ or (and (or .IsNightly .IsSnapshot) .Version) (printf "v%s" .Version) }}-arm64
 
 release:
   mode: prepend
   prerelease: auto
   draft: false
-  name_template: "Release {{.Version}}"
+  name_template: "Release {{ or (and (or .IsNightly .IsSnapshot) .Version) (printf "v%s" .Version) }}"
   header: |
     # What's Changed
   extra_files:
