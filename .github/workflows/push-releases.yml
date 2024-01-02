@@ -20,7 +20,7 @@ jobs:
           fetch-depth: 0
       - name: Get changed release definitions
         id: changed_release_files
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v41
         with:
           files: releases/release-*/release.yml
       - name: Gather release files as json list
@@ -29,7 +29,7 @@ jobs:
           echo "files=$(echo -n ${{ steps.changed_release_files.outputs.all_changed_files }} | jq -R -s -c 'split(" ")')"  >> $GITHUB_OUTPUT
       - name: Get changed tag definitions
         id: changed_tag_files
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v41
         with:
           files: releases/release-*/tag-*.yml
       - name: Gather tag files as json list
