@@ -12,6 +12,9 @@ builds:
     goos:
       - linux
       - darwin
+    goarch:
+      - amd64
+      - arm64
     ldflags:
       - -s -w
       - -X go.infratographer.com/x/versionx.appName={{.ProjectName}}
