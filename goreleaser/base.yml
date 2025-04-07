@@ -30,7 +30,7 @@ checksum:
   name_template: 'checksums.txt'
 
 snapshot:
-  name_template: "{{ .Tag }}-next"
+  version_template: "{{ .Tag }}-next"
 
 changelog:
   disable: false
@@ -102,7 +102,7 @@ release:
     - glob: ./schema.graphql
 
 nightly:
-  name_template: main-latest
+  version_template: main-latest
   tag_name: main-latest
   publish_release: false
   keep_single_release: true
