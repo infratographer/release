@@ -24,7 +24,8 @@ builds:
       - -X go.infratographer.com/x/versionx.builtBy=infratographer-release-bot
 
 archives:
-  - format: binary
+  - formats:
+      - binary
 
 checksum:
   name_template: 'checksums.txt'
