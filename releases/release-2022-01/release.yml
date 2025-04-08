@@ -1,8 +1,0 @@
----
-# Release 2022.01 is before any actual releases will be created on 2023.X and is
-# being used to test github actions
-
-version: 2022.01
-repos:
-  - release-test-1
-  - release-test-2
